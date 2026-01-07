@@ -1,4 +1,4 @@
-# NightShift Ex BDS Bridge
+# NightShifts Exclusive BDS Bridge
 
 A simple Node.js wrapper for Minecraft Bedrock Dedicated Server (BDS). This setup lets me change my JS code without having to stop and restart the whole Minecraft server.
 
