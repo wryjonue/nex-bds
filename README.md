@@ -11,6 +11,7 @@ I use two different types of scripting here:
 
 2. **The "Inside" (Minecraft Scripting API):**
    - These are the Behavior Packs running inside Minecraft itself.
+   - Can also be reloaded anytime using `reload` command (no slash)
    - Handles game events like player movement, block breaks, and entity logic.
 
 ---
