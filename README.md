@@ -9,7 +9,7 @@ I use two different types of scripting here:
    - It "wraps" around the Minecraft server process.
    - I can reload this code anytime using the `/reload` command without kicking players off the server.
 
-2. **The "Inside" (Minecraft Scripting API):**
+2. **The "Inside" (Minecraft Scripting API [MCBSAPI]):**
    - These are the Behavior Packs running inside Minecraft itself.
    - Can also be reloaded anytime using `reload` command (no slash)
    - Handles game events like player movement, block breaks, and entity logic.
@@ -20,6 +20,7 @@ I use two different types of scripting here:
 * `index.js` - The main file that stays running. It keeps the BDS alive.
 * `hot-index.js` - The "hot-reload" file. I put my logic here so I can update it live.
 * `/Logs` - Where all the server console history is saved.
+* `/development_behavior_packs/nsex-bp/scripts` - Where the inside MCBSAPI scripts located
 
 ## 🚀 How to use it
 1. Run `node index.js`.
