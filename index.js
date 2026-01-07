@@ -1,46 +1,56 @@
-// index.js
+// This is the main entry point for the Bedrock server wrapper.
+// This is meant to only restart every 12 hours or more, so it spawns the actual server process as a child process
+// So it developers can hot-reload logic without restarting the server process
+
 import path from 'path';
 import { spawn } from 'child_process';
 import fs from 'fs';
-import { pathToFileURL } from 'url';
+import { pathToFileURL, fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// This variable NEVER dies because index.js never restarts
-let globalState = {
-    players: ['wryjonue', 'guest1'],
-    score: 100
-};
+const executable = process.platform === 'win32' ? 'bedrock_server.exe' : './bedrock_serverMC';
 
-const executable = process.platform === 'win32'
-	? 'bedrock_server.exe'
-	: './bedrock_serverMC';
-
-const child = spawn(executable, {
-	cwd: __dirname,
-	stdio: ['pipe', 'pipe', 'pipe']
+const child = spawn(executable, [], {
+    cwd: __dirname,
+    stdio: ['pipe', 'pipe', 'pipe']
 });
 
-// ==== Logging ====
+// ==== Logging Setup ====
+if (!fs.existsSync(path.join(__dirname, 'Logs'))) fs.mkdirSync(path.join(__dirname, 'Logs'));
 const now = new Date();
-const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-const gmt8 = new Date(utc + 8 * 3600000);
 const pad = (n) => n.toString().padStart(2, '0');
-const timestamp = `${pad(gmt8.getMonth() + 1)}-${pad(gmt8.getDate())}_${pad(gmt8.getHours())}-${pad(gmt8.getMinutes())}-${pad(gmt8.getSeconds())}`;
-const logFileName = `${timestamp}.txt`;
-const logStream = fs.createWriteStream(path.join(__dirname, 'Logs', logFileName));
+const timestamp = `${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
+const logStream = fs.createWriteStream(path.join(__dirname, 'Logs', `${timestamp}.txt`));
+
 
 child.stderr.pipe(process.stderr);
-child.stderr.pipe(logStream);
-process.stdin.pipe(child.stdin);
 
-// Loads the hot-reloadable module and executes its main function
-// Passes the child process so that the module can interact with the never-restarting server process
+process.stdin.on('data', (data) => {
+    if (data.toString().trim() === "/reload") {
+        reloadAndExecute();
+    } else {
+        child.stdin.write(data);
+    }
+});
+
+let currentModule = null;
+
 async function reloadAndExecute() {
+    if (currentModule && currentModule.cleanup) {
+        currentModule.cleanup(child);
+    }
+
     const modulePath = pathToFileURL(path.resolve('./hot-index.js')).href;
     const versionedPath = `${modulePath}?v=${Date.now()}`;
-    const { main : runLogic } = await import(versionedPath);
-    runLogic(child, logStream);
+    
+    currentModule = await import(versionedPath);
+    
+    if (currentModule.main) {
+        currentModule.main(child, logStream);
+    }
+    console.log("--- Hot Logic Reloaded ---");
 }
-reloadAndExecute()
+
+reloadAndExecute();
