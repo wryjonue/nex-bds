@@ -1,0 +1,29 @@
+{
+    "format_version": 2,
+    "header": {
+        "name": "[BP][Main] Nightshifts Forever",
+        "description": "The essential things.",
+        "uuid": "c5043eb0-e7d5-431c-b65b-bf3841c92192",
+        "version": "1.0.0",
+        "min_engine_version": [1, 21, 100]
+    },
+    "modules": [
+        {
+            "type": "script",
+            "uuid": "1226b04c-9f6d-4df0-bca9-2ba13a3d5b7a",
+            "entry": "scripts/index.js",
+            "version": [ 0, 1, 0 ]
+        }
+    ],
+    "capabilities": [ "script_eval" ],
+    "dependencies": [
+        {
+            "module_name": "@minecraft/server",
+            "version": "beta"
+        },
+        {
+            "module_name": "@minecraft/server-ui",
+            "version": "beta"
+        }
+    ]
+}
