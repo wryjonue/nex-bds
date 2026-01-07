@@ -13,18 +13,6 @@ let globalState = {
     score: 100
 };
 
-async function reloadAndExecute() {
-    // 1. Create a "cache-busting" URL
-    const modulePath = pathToFileURL(path.resolve('./hot-index.js')).href;
-    const versionedPath = `${modulePath}?v=${Date.now()}`;
-
-    // 2. Import the NEW version of the code
-    const { main : runLogic } = await import(versionedPath);
-
-    // 3. Pass your live variables into the new code
-    runLogic(globalState);
-}
-
 const executable = process.platform === 'win32'
 	? 'bedrock_server.exe'
 	: './bedrock_serverMC';
@@ -33,7 +21,6 @@ const child = spawn(executable, {
 	cwd: __dirname,
 	stdio: ['pipe', 'pipe', 'pipe']
 });
-
 
 // ==== Logging ====
 const now = new Date();
@@ -47,3 +34,13 @@ const logStream = fs.createWriteStream(path.join(__dirname, 'Logs', logFileName)
 child.stderr.pipe(process.stderr);
 child.stderr.pipe(logStream);
 process.stdin.pipe(child.stdin);
+
+// Loads the hot-reloadable module and executes its main function
+// Passes the child process so that the module can interact with the never-restarting server process
+async function reloadAndExecute() {
+    const modulePath = pathToFileURL(path.resolve('./hot-index.js')).href;
+    const versionedPath = `${modulePath}?v=${Date.now()}`;
+    const { main : runLogic } = await import(versionedPath);
+    runLogic(child, logStream);
+}
+reloadAndExecute()
